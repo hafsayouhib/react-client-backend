@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
+
+import { useNavigate } from 'react-router-dom';
 
 const Form =()=>{
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
     email: ''
@@ -14,10 +17,29 @@ const Form =()=>{
       [e.target.name]: e.target.value
     });
   };
+  useEffect(() => {
+    // Check if the user is logged in when the component mounts
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    if (!isLoggedIn) {
+      navigate('/'); // Redirect to login page if not logged in
+    }
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const userData = JSON.parse(localStorage.getItem('userData'));
+      if (userData && (userData.email === formData.email || userData.name === formData.name)) {
+        
+        navigate('/login');
+        return;
+      }
+
+      localStorage.setItem('userData', JSON.stringify(formData));
+      
+      // Simulate login by setting a flag in local storage
+      localStorage.setItem('isLoggedIn', true);
+      
         console.log(formData)
       const response = await fetch('http://localhost:5000/submit', {
         method: 'POST',
@@ -35,9 +57,10 @@ const Form =()=>{
         console.error('Failed to submit form');
       
       }
-    }  catch (error) {
-      console.error('Error:', error);
-    }
+     navigate('/user'); 
+  } catch (error) {
+    console.error('Error:', error);
+  }
     
   };
 
